@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zhiyou.dao.VideoDao">
+
+	<cache type="com.zhiyou.redis.RedisCache"/>
+	
+	<insert id="add" parameterType="video">
+		insert into video values(#{id},#{title},#{detail},#{time},
+		#{speaker_id},#{course_id},#{video_url},#{image_url},#{play_num})
+	</insert>
+	
+	<delete id="delete" parameterType="video">
+		delete from video where id = #{id}
+	</delete>
+	
+	<update id="update" parameterType="video">
+	update video
+	<trim prefix="set" prefixOverrides="," suffix="where">
+		<if test="title!=null">
+			title = #{title}
+		</if>
+		<if test="detail!=null">
+			,detail = #{detail}
+		</if>
+		<if test="time!=null">
+			,time = #{time}
+		</if>
+		<if test="speaker_id!=null">
+			,speaker_id = #{speaker_id}
+		</if>
+		<if test="course_id!=null">
+			,course_id = #{course_id}
+		</if>
+		<if test="video_url!=null">
+			,video_url = #{video_url}
+		</if>
+		<if test="image_url!=null">
+			,image_url = #{image_url}
+		</if>
+		<if test="play_num!=null">
+			,play_num = #{play_num}
+		</if>
+	</trim>
+		<if test="id!=null">
+			id = #{id}
+		</if>
+	</update>
+	
+	<resultMap type="video" id="vMapper">
+		<id column="id" property="id"/>
+		<result column="title" property="title"/>
+		<result column="detail" property="detail"/>
+		<result column="time" property="time"/>
+		<result column="speaker_id" property="speaker_id"/>
+		<result column="course_id" property="course_id"/>
+		<result column="video_url" property="video_url"/>
+		<result column="image_url" property="image_url"/>
+		<result column="play_num" property="play_num"/>
+		<!-- 用来指定单个对象 -->
+		<association property="speaker" javaType="com.zhiyou.model.Speaker">
+			<id column="id" property="id"/>
+			<result column="speaker_name" property="speaker_name"/>
+			<result column="speaker_desc" property="speaker_desc"/>
+			<result column="speaker_job" property="speaker_job"/>
+			<result column="head_img_url" property="head_img_url"/>
+		</association>
+	</resultMap>
+	
+	<select id="selectAll" resultMap="vMapper">
+		select * from video v left join speaker s on v.speaker_id=s.id
+	</select>
+	
+	<select id="selectByID" resultMap="vMapper">
+		select * from video v left join speaker s on v.speaker_id = s.id where v.id=#{id}
+		
+	</select>
+	
+	<!-- 根据任何条件查询 -->
+	<select id="select" resultMap="vMapper">
+		select * from video
+		<trim prefix="where" prefixOverrides="and">
+			<if test="id!=null">
+				id = #{id}
+			</if>
+			 <if test="title!=null">
+				and title = #{title}
+			</if>
+			<if test="detail!=null">
+				and detail = #{detail}
+			</if>
+			<if test="time!=null">
+				and time = #{time}
+			</if>
+			<if test="speaker_id!=null">
+				and speaker_id = #{speaker_id}
+			</if>
+			<if test="course_id!=null">
+				and course_id = #{course_id}
+			</if>
+			<if test="video_url!=null">
+				and video_url = #{video_url}
+			</if>
+			<if test="image_url!=null">
+				and image_url = #{image_url}
+			</if>
+			<if test="play_num!=null">
+				and play_num = #{play_num}
+			</if>
+		</trim>
+	</select>
+	
+	<!-- 根据任意条件模糊查询 -->
+	<!-- <select id="selectLikeAll" resultMap="vMapper">
+		select * from video
+		<trim prefix="where" prefixOverrides="and">
+			<if test="id!=null">
+				<bind name="id_s" value="'%'+id+'%'"/>
+				id like #{id_s}
+			</if>
+			<if test="title!=null">
+				<bind name="title_s" value="'%'+title+'%'"/>
+				and title like #{title_s}
+			</if>
+			<if test="detail!=null">
+				<bind name="detail_s" value="'%'+detail+'%'"/>
+				and detail like #{detail_s}
+			</if>
+			<if test="time!=null">
+				<bind name="time_s" value="'%'+time+'%'"/>
+				and time like #{time_s}
+			</if>
+			<if test="speaker_id!=null">
+				<bind name="speaker_id_s" value="'%'+speaker_id+'%'"/>
+				and speaker_id like #{speaker_id_s}
+			</if>
+			<if test="course_id!=null">
+				<bind name="course_id_s" value="'%'+course_id+'%'"/>
+				and course_id like #{course_id_s}
+			</if>
+			<if test="video_url!=null">
+				<bind name="video_url_s" value="'%'+video_url+'%'"/>
+				and video_url like #{video_url_s}
+			</if>
+			<if test="image_url!=null">
+				<bind name="image_url_s" value="'%'+image_url+'%'"/>
+				and image_url like #{image_url_s}
+			</if>
+			<if test="play_num!=null">
+				<bind name="play_num_s" value="'%'+play_num+'%'"/>
+				and play_num like #{play_num_s}
+			</if>
+		</trim>
+	</select> -->
+	
+	<select id="selectLikeAll" resultMap="vMapper">
+		select * from video v left join speaker s on v.speaker_id=s.id
+		<trim prefix="where" prefixOverrides="and">
+			<if test="title!=null">
+				<bind name="title" value="'%'+title+'%'"/>
+				title like #{title}
+			</if>
+			<if test="speaker_id!=0">
+				and speaker_id =#{speaker_id}
+			</if>
+			<if test="course_id!=0">
+				and course_id =#{course_id}
+			</if>
+		</trim>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" >
+		delete from video where id in
+		<foreach collection="array" item="id" separator="," open="(" close=")">
+			#{id}
+		</foreach>
+	</delete>
+</mapper>
